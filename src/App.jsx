@@ -6,12 +6,14 @@ import MyFooter from './components/MyFooter'
 import Welcome from './components/Welcome'
 import { Alert, Container, Spinner } from 'react-bootstrap'
 import BookList from './components/BookList'
+import CommentArea from './components/CommentArea'
 
 class App extends Component {
   state = {
     books: [],
     isLoading: false,
     errorMsg: '',
+    selectedBookAsin: '',
   }
 
   componentDidMount = async () => {
@@ -43,6 +45,10 @@ class App extends Component {
   }
 
   render() {
+    const selectedBook = this.state.books.find(
+      (book) => book.asin === this.state.selectedBookAsin
+    )
+
     return (
       <>
         <MyNav />
@@ -63,7 +69,25 @@ class App extends Component {
             )}
 
             {!this.state.isLoading && !this.state.errorMsg && (
-              <BookList books={this.state.books} />
+              <>
+                <BookList
+                  books={this.state.books}
+                  selectedBookAsin={this.state.selectedBookAsin}
+                  onSelectBook={(asin) =>
+                    this.setState({
+                      selectedBookAsin:
+                        this.state.selectedBookAsin === asin ? '' : asin,
+                    })
+                  }
+                />
+
+                {selectedBook && (
+                  <CommentArea
+                    asin={selectedBook.asin}
+                    bookTitle={selectedBook.title}
+                  />
+                )}
+              </>
             )}
           </Container>
         </main>
