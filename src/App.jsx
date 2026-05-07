@@ -1,4 +1,4 @@
-import { Component } from 'react'
+import { useEffect, useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css'
 import MyNav from './components/MyNav'
@@ -6,95 +6,64 @@ import MyFooter from './components/MyFooter'
 import Welcome from './components/Welcome'
 import { Alert, Container, Spinner } from 'react-bootstrap'
 import BookList from './components/BookList'
-import CommentArea from './components/CommentArea'
 
-class App extends Component {
-  state = {
-    books: [],
-    isLoading: false,
-    errorMsg: '',
-    selectedBookAsin: '',
-  }
+function App() {
+  const [books, setBooks] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
-  componentDidMount = async () => {
-    this.setState({ isLoading: true })
+  useEffect(() => {
+    const fetchBooks = async () => {
+      setIsLoading(true)
 
-    try {
-      const response = await fetch('/data/fantasy.json')
+      try {
+        const response = await fetch('/data/fantasy.json')
 
-      if (response.ok) {
-        const books = await response.json()
+        if (response.ok) {
+          const booksData = await response.json()
 
-        this.setState({
-          books,
-          isLoading: false,
-          errorMsg: '',
-        })
-      } else {
-        this.setState({
-          isLoading: false,
-          errorMsg: 'Non sono riuscita a caricare i libri.',
-        })
+          setBooks(booksData)
+          setErrorMsg('')
+        } else {
+          setErrorMsg('Non sono riuscita a caricare i libri.')
+        }
+      } catch (error) {
+        setErrorMsg(error.message)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      this.setState({
-        isLoading: false,
-        errorMsg: error.message,
-      })
     }
-  }
 
-  render() {
-    const selectedBook = this.state.books.find(
-      (book) => book.asin === this.state.selectedBookAsin
-    )
+    fetchBooks()
+  }, [])
 
-    return (
-      <>
-        <MyNav />
-        <main className="app-shell">
-          <Container>
-            <Welcome />
+  return (
+    <>
+      <MyNav />
+      <main className="app-shell">
+        <Container>
+          <Welcome />
 
-            {this.state.isLoading && (
-              <div className="text-center my-5">
-                <Spinner animation="border" variant="dark" />
-              </div>
-            )}
+          {isLoading && (
+            <div className="text-center my-5">
+              <Spinner animation="border" variant="dark" />
+            </div>
+          )}
 
-            {this.state.errorMsg && (
-              <Alert variant="danger" className="mt-4 text-center">
-                Errore: {this.state.errorMsg}
-              </Alert>
-            )}
+          {errorMsg && (
+            <Alert variant="danger" className="mt-4 text-center">
+              Errore: {errorMsg}
+            </Alert>
+          )}
 
-            {!this.state.isLoading && !this.state.errorMsg && (
-              <>
-                <BookList
-                  books={this.state.books}
-                  selectedBookAsin={this.state.selectedBookAsin}
-                  onSelectBook={(asin) =>
-                    this.setState({
-                      selectedBookAsin:
-                        this.state.selectedBookAsin === asin ? '' : asin,
-                    })
-                  }
-                />
-
-                {selectedBook && (
-                  <CommentArea
-                    asin={selectedBook.asin}
-                    bookTitle={selectedBook.title}
-                  />
-                )}
-              </>
-            )}
-          </Container>
-        </main>
-        <MyFooter />
-      </>
-    )
-  }
+          {!isLoading && !errorMsg && (
+            <BookList books={books} />
+          )}
+        </Container>
+      </main>
+      <MyFooter />
+    </>
+  )
 }
 
 export default App

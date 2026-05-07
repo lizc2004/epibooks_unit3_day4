@@ -2,3 +2,12 @@
   min-height: calc(100vh - 112px);
   padding-bottom: 2rem;
 }
+
+.comment-area-wrapper {
+  position: sticky;
+  top: 1rem;
+}
+
+.comment-area-card {
+  min-height: 220px;
+}

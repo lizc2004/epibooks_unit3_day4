@@ -1,101 +1,94 @@
-import { Component } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Card, ListGroup, Spinner } from 'react-bootstrap'
 import { API_TOKEN, API_URL } from '../apiConfig'
 
-class CommentArea extends Component {
-  state = {
-    comments: [],
-    isLoading: false,
-    errorMsg: '',
-  }
+function CommentArea({ asin, bookTitle }) {
+  const [comments, setComments] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
-  componentDidMount() {
-    this.fetchComments()
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.asin !== this.props.asin) {
-      this.fetchComments()
+  useEffect(() => {
+    if (!asin) {
+      setComments([])
+      setIsLoading(false)
+      setErrorMsg('')
+      return
     }
-  }
 
-  fetchComments = async () => {
-    this.setState({
-      isLoading: true,
-      errorMsg: '',
-    })
+    const fetchComments = async () => {
+      setIsLoading(true)
+      setErrorMsg('')
 
-    try {
-      const response = await fetch(`${API_URL}${this.props.asin}`, {
-        headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
-        },
-      })
-
-      if (response.ok) {
-        const comments = await response.json()
-
-        this.setState({
-          comments,
-          isLoading: false,
-          errorMsg: '',
+      try {
+        const response = await fetch(`${API_URL}${asin}`, {
+          headers: {
+            Authorization: `Bearer ${API_TOKEN}`,
+          },
         })
-      } else {
-        this.setState({
-          isLoading: false,
-          errorMsg: 'Non sono riuscita a caricare i commenti.',
-        })
+
+        if (response.ok) {
+          const commentsData = await response.json()
+
+          setComments(commentsData)
+          setErrorMsg('')
+        } else {
+          setErrorMsg('Non sono riuscita a caricare i commenti.')
+        }
+      } catch (error) {
+        setErrorMsg(error.message)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      this.setState({
-        isLoading: false,
-        errorMsg: error.message,
-      })
     }
-  }
 
-  render() {
-    return (
-      <Card className="mt-4 shadow-sm">
-        <Card.Body>
-          <Card.Title>Recensioni di {this.props.bookTitle}</Card.Title>
+    fetchComments()
+  }, [asin])
 
-          {this.state.isLoading && (
-            <div className="text-center py-4">
-              <Spinner animation="border" variant="dark" />
-            </div>
-          )}
+  return (
+    <Card className="shadow-sm comment-area-card">
+      <Card.Body>
+        {!asin && (
+          <>
+            <Card.Title>CommentArea</Card.Title>
+            <p className="mb-0 text-secondary">
+              Seleziona un libro dalla griglia per vedere qui le recensioni.
+            </p>
+          </>
+        )}
 
-          {this.state.errorMsg && (
-            <Alert variant="danger" className="mt-3 mb-0">
-              Errore: {this.state.errorMsg}
-            </Alert>
-          )}
+        {asin && <Card.Title>Recensioni di {bookTitle}</Card.Title>}
 
-          {!this.state.isLoading &&
-            !this.state.errorMsg &&
-            this.state.comments.length === 0 && (
-              <p className="mb-0 text-secondary">
-                Non ci sono ancora recensioni per questo libro.
-              </p>
-            )}
+        {asin && isLoading && (
+          <div className="text-center py-4">
+            <Spinner animation="border" variant="dark" />
+          </div>
+        )}
 
-          {!this.state.isLoading &&
-            !this.state.errorMsg &&
-            this.state.comments.length > 0 && (
-              <ListGroup variant="flush" className="mt-3">
-                {this.state.comments.map((comment) => (
-                  <ListGroup.Item key={comment._id}>
-                    <div className="fw-semibold">Voto: {comment.rate}/5</div>
-                    <div>{comment.comment}</div>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            )}
-        </Card.Body>
-      </Card>
-    )
-  }
+        {asin && errorMsg && (
+          <Alert variant="danger" className="mt-3 mb-0">
+            Errore: {errorMsg}
+          </Alert>
+        )}
+
+        {asin && !isLoading && !errorMsg && comments.length === 0 && (
+          <p className="mb-0 text-secondary">
+            Non ci sono ancora recensioni per questo libro.
+          </p>
+        )}
+
+        {asin && !isLoading && !errorMsg && comments.length > 0 && (
+          <ListGroup variant="flush" className="mt-3">
+            {comments.map((comment) => (
+              <ListGroup.Item key={comment._id}>
+                <div className="fw-semibold">Voto: {comment.rate}/5</div>
+                <div>{comment.comment}</div>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        )}
+      </Card.Body>
+    </Card>
+  )
 }
 
 export default CommentArea
