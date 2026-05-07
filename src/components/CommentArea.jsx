@@ -45,7 +45,7 @@ function CommentArea({ asin, bookTitle }) {
   }, [asin])
 
   return (
-    <Card className="shadow-sm comment-area-card">
+    <Card className="shadow-sm comment-area-card" data-testid="comment-area">
       <Card.Body>
         {!asin && (
           <>
@@ -79,7 +79,7 @@ function CommentArea({ asin, bookTitle }) {
         {asin && !isLoading && !errorMsg && comments.length > 0 && (
           <ListGroup variant="flush" className="mt-3">
             {comments.map((comment) => (
-              <ListGroup.Item key={comment._id}>
+              <ListGroup.Item key={comment._id} data-testid="single-comment">
                 <div className="fw-semibold">Voto: {comment.rate}/5</div>
                 <div>{comment.comment}</div>
               </ListGroup.Item>

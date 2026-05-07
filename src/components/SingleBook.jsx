@@ -3,6 +3,8 @@ import { Card } from 'react-bootstrap'
 function SingleBook({ book, selected, onSelect }) {
   return (
     <Card
+      data-testid="single-book-card"
+      data-selected={selected}
       className="h-100"
       onClick={onSelect}
       style={{
@@ -10,7 +12,7 @@ function SingleBook({ book, selected, onSelect }) {
         cursor: 'pointer',
       }}
     >
-      <Card.Img variant="top" src={book.img} />
+      <Card.Img variant="top" src={book.img} alt={book.title} />
       <Card.Body>
         <Card.Title style={{ color: 'black' }}>{book.title}</Card.Title>
       </Card.Body>
